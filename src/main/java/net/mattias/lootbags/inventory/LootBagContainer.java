@@ -35,10 +35,11 @@ public class LootBagContainer implements MenuProvider {
     @Override
     public AbstractContainerMenu createMenu(int id, Inventory playerInventory, Player player) {
         FriendlyByteBuf buffer = new FriendlyByteBuf(Unpooled.buffer());
-        buffer.writeItemStack(this.stack, false);
+        buffer.writeItem(this.stack);
         buffer.writeByte(this.screenID);
         return new LootBagMenu(id, playerInventory, buffer);
     }
+
 
     @Override
     public Component getDisplayName() {

@@ -15,7 +15,7 @@ public class LootBagMenu extends AbstractContainerMenu {
     private final LootBagContainer container;
 
     public LootBagMenu(int id, Inventory playerInventory, FriendlyByteBuf data) {
-        super(ModMenuTypes.LOOT_BAG_SLOTS.get(), id); // Name of my Menu
+        super(ModMenuTypes.LOOT_BAG_SLOTS.get(), id); // Name of your Menu
         ItemStack stack = data.readItem();
         Player player = playerInventory.player;
         byte screenID = data.readByte();
