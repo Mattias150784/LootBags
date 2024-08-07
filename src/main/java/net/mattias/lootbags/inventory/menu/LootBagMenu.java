@@ -1,5 +1,6 @@
 package net.mattias.lootbags.inventory.menu;
 
+import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.AbstractContainerMenu;
@@ -8,16 +9,21 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraftforge.items.SlotItemHandler;
 import net.minecraftforge.items.wrapper.InvWrapper;
 import net.mattias.lootbags.inventory.LootBagContainer;
+import net.mattias.lootbags.item.custom.CommonLootBagItem;
 
 public class LootBagMenu extends AbstractContainerMenu {
     private final LootBagContainer container;
 
-    public LootBagMenu(int id, Inventory playerInventory, LootBagContainer container) {
-        super(MenuType.GENERIC_9x5, id);
-        this.container = container;
+    public LootBagMenu(int id, Inventory playerInventory, FriendlyByteBuf data) {
+        super(ModMenuTypes.LOOT_BAG_SLOTS.get(), id); // Name of my Menu
+        ItemStack stack = data.readItem();
+        Player player = playerInventory.player;
+        byte screenID = data.readByte();
+        this.container = new LootBagContainer(stack, player, screenID);
         addPlayerSlots(new InvWrapper(playerInventory));
         addLootBagSlots();
     }
+
     private void addLootBagSlots() {
         // Assuming LootBagContainer.getHandler() provides a compatible IItemHandler
         for (int i = 0; i < container.getHandler().getSlots(); i++) {

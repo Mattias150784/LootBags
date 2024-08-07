@@ -1,6 +1,9 @@
 package net.mattias.lootbags.inventory;
 
+import io.netty.buffer.Unpooled;
 import net.mattias.lootbags.inventory.menu.LootBagMenu;
+import net.mattias.lootbags.inventory.menu.ModMenuTypes;
+import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.MenuProvider;
 import net.minecraft.world.entity.player.Inventory;
@@ -31,11 +34,14 @@ public class LootBagContainer implements MenuProvider {
 
     @Override
     public AbstractContainerMenu createMenu(int id, Inventory playerInventory, Player player) {
-        return new LootBagMenu(id, playerInventory, this);
+        FriendlyByteBuf buffer = new FriendlyByteBuf(Unpooled.buffer());
+        buffer.writeItemStack(this.stack, false);
+        buffer.writeByte(this.screenID);
+        return new LootBagMenu(id, playerInventory, buffer);
     }
 
     @Override
     public Component getDisplayName() {
-        return Component.translatable("screen.lootbag.item");
+        return Component.translatable("screen.common_lootbag.item");
     }
 }
