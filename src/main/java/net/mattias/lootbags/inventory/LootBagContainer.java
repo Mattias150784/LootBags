@@ -1,48 +1,100 @@
 package net.mattias.lootbags.inventory;
 
-import io.netty.buffer.Unpooled;
-import net.mattias.lootbags.inventory.menu.LootBagMenu;
-import net.mattias.lootbags.inventory.menu.ModMenuTypes;
-import net.minecraft.network.FriendlyByteBuf;
-import net.minecraft.network.chat.Component;
-import net.minecraft.world.MenuProvider;
-import net.minecraft.world.entity.player.Inventory;
+import net.mattias.lootbags.item.custom.CommonLootBagItem;
+import net.minecraft.core.NonNullList;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.nbt.ListTag;
+import net.minecraft.world.Container;
+import net.minecraft.world.ContainerHelper;
+import net.minecraft.world.ContainerListener;
 import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.inventory.AbstractContainerMenu;
+import net.minecraft.world.entity.player.StackedContents;
+import net.minecraft.world.inventory.StackedContentsCompatible;
+import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.ItemStack;
-import net.minecraftforge.items.ItemStackHandler;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
-public class LootBagContainer implements MenuProvider {
-    private final ItemStackHandler inventory = new ItemStackHandler(5); // Set to 5 slots as per your requirement
-    private final Player player;
-    private final ItemStack stack;
-    private final byte screenID;
+import java.util.Iterator;
+import java.util.List;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.function.Predicate;
 
-    public LootBagContainer(ItemStack stack, Player player, byte screenID) {
+
+public class LootBagContainer implements Container, StackedContentsCompatible {
+    private NonNullList<ItemStack> stacks = NonNullList.withSize(CommonLootBagItem.DEFAULT_MAX_STACK_SIZE, ItemStack.EMPTY);
+
+    @Nullable
+    private List<ContainerListener> listeners;
+
+    private @Nullable Player player;
+
+    public LootBagContainer(NonNullList<ItemStack> itemStacks) {
+        this.stacks = itemStacks;
+    }
+
+    public LootBagContainer(NonNullList<ItemStack> itemStacks, @Nullable Player player) {
+        this(itemStacks);
         this.player = player;
-        this.stack = stack;
-        this.screenID = screenID;
-    }
-
-    public ItemStackHandler getHandler() {
-        return this.inventory;
-    }
-
-    public ItemStack getItemStack() {
-        return this.stack;
     }
 
     @Override
-    public AbstractContainerMenu createMenu(int id, Inventory playerInventory, Player player) {
-        FriendlyByteBuf buffer = new FriendlyByteBuf(Unpooled.buffer());
-        buffer.writeItem(this.stack);
-        buffer.writeByte(this.screenID);
-        return new LootBagMenu(id, playerInventory, buffer);
+    public int getContainerSize() {
+        return CommonLootBagItem.DEFAULT_MAX_STACK_SIZE;
     }
-
 
     @Override
-    public Component getDisplayName() {
-        return Component.translatable("screen.common_lootbag.item");
+    public boolean isEmpty() { return this.stacks.stream().allMatch(Predicate.isEqual(ItemStack.EMPTY)); }
+
+    @Override
+    public @NotNull ItemStack getItem(int i) {
+        return stacks.get(i);
     }
-}
+
+    @Override
+    public @NotNull ItemStack removeItem(int i, int j) {
+        return ContainerHelper.removeItem(stacks, i, j);
+    }
+
+    @Override
+    public @NotNull ItemStack removeItemNoUpdate(int i) {
+        return ContainerHelper.takeItem(this.stacks, i);
+    }
+
+    @Override
+    public void setItem(int i, ItemStack itemStack) {
+        stacks.set(i, itemStack);
+        this.setChanged();
+    }
+
+    @Override
+    public boolean stillValid(Player player) {
+        return !player.isDeadOrDying();
+    }
+
+    @Override
+    public void clearContent() {
+        this.stacks.clear();
+        this.setChanged();
+    }
+
+    @Override
+    public void fillStackedContents(StackedContents stackedContents) {
+        for (ItemStack itemStack : this.stacks) {
+            stackedContents.accountStack(itemStack);
+        }
+        this.setChanged();
+    }
+
+    @Override @SuppressWarnings("all")
+    public void setChanged() {
+
+        System.out.println("setChanged called");
+
+        if (this.player == null) {
+
+            System.out.println("player was null");
+            return;
+        }
+      }
+    }
